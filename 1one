@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escape Road City</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #333;
+        }
+        canvas {
+            display: block;
+            background: url('city-background.png') repeat-x;
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let car = {
+            x: 50,
+            y: canvas.height - 100,
+            width: 50,
+            height: 30,
+            speed: 5,
+            dy: 0,
+            gravity: 0.5,
+            jumpPower: -10
+        };
+
+        let obstacles = [];
+        let gameSpeed = 3;
+        let isJumping = false;
+
+        function drawCar() {
+            ctx.fillStyle = "red";
+            ctx.fillRect(car.x, car.y, car.width, car.height);
+        }
+
+        function updateCar() {
+            car.y += car.dy;
+            car.dy += car.gravity;
+            if (car.y > canvas.height - 100) {
+                car.y = canvas.height - 100;
+                isJumping = false;
+            }
+        }
+
+        function createObstacle() {
+            obstacles.push({
+                x: canvas.width,
+                y: canvas.height - 100,
+                width: 30,
+                height: 30
+            });
+        }
+
+        function drawObstacles() {
+            ctx.fillStyle = "black";
+            obstacles.forEach(obs => {
+                ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+            });
+        }
+
+        function updateObstacles() {
+            obstacles.forEach(obs => obs.x -= gameSpeed);
+            obstacles = obstacles.filter(obs => obs.x + obs.width > 0);
+        }
+
+        function detectCollision() {
+            for (let obs of obstacles) {
+                if (
+                    car.x < obs.x + obs.width &&
+                    car.x + car.width > obs.x &&
+                    car.y < obs.y + obs.height &&
+                    car.y + car.height > obs.y
+                ) {
+                    alert("Game Over");
+                    document.location.reload();
+                }
+            }
+        }
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawCar();
+            updateCar();
+            drawObstacles();
+            updateObstacles();
+            detectCollision();
+            requestAnimationFrame(gameLoop);
+        }
+
+        document.addEventListener("keydown", (event) => {
+            if (event.code === "Space" && !isJumping) {
+                car.dy = car.jumpPower;
+                isJumping = true;
+            }
+        });
+
+        setInterval(createObstacle, 2000);
+        gameLoop();
+    </script>
+</body>
+</html>
